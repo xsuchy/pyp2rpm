@@ -1,16 +1,18 @@
 {{ data.credit_line }}
 {% from 'macros.spec' import dependencies, for_python_versions, underscored_or_pypi -%}
 %global pypi_name {{ data.name }}
-{%- if data.python_versions %}
+{%- if data.two_plus_versions %}
 %if 0%{?fedora} > 12
-{%- for pv in data.python_versions %}
+{%- for pv in data.two_plus_versions %}
 %global with_python{{ pv }} 1
 {%- endfor %}
 %endif
 {%- endif %}
 
+%if 0%{?rhel} && 0%{?rhel} < 6
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
-
+%endif
 
 Name:           {{ data.pkg_name|macroed_pkg_name(data.name)|name_for_python_version(data.base_python_version) }}
 Version:        {{ data.version }}

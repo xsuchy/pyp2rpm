@@ -55,6 +55,23 @@ class Convertor(object):
                 and not os.path.isdir(self.package):
             self.pypi = False
 
+    def merge_versions(self, data):
+        """Merges python versions specified in command lines options with
+        extracted versions, checks if base version is not > 2 if EPEL template
+        will be used.
+        """
+        if self.base_python_version or self.python_versions:
+            data.base_python_version = self.base_python_version
+            data.python_versions = [v for v in self.python_versions
+                                    if not v == data.base_python_version]
+        elif data.base_python_version in data.python_versions:
+            data.python_versions.remove(data.base_python_version)
+        data.two_plus_versions = [ver for ver in data.python_versions if int(ver[0]) > 2]
+        if self.template == "epel.spec" and int(data.base_python_version[0]) > 2:
+            sys.stderr.write("Invalid base version: {0}, major number of base version for EPEL "
+            "spec file must not be greater than 2.\n".format(self.base_python_version))
+            sys.exit(1)
+
     def convert(self):
         """Returns RPM SPECFILE.
         Returns:
@@ -75,13 +92,7 @@ class Convertor(object):
 
         self.local_file = local_file
         data = self.metadata_extractor.extract_data(self.client)
-
-        if self.base_python_version or self.python_versions:
-            data.base_python_version = self.base_python_version
-            data.python_versions = [v for v in self.python_versions
-                                    if not v == data.base_python_version]
-        elif data.base_python_version in data.python_versions:
-            data.python_versions.remove(data.base_python_version)
+        self.merge_versions(data)
 
         jinja_env = jinja2.Environment(loader=jinja2.ChoiceLoader([
             jinja2.FileSystemLoader(['/']),
