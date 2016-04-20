@@ -1,6 +1,6 @@
 import pytest
 
-from pyp2rpm.name_convertor import NameConvertor
+from pyp2rpm.name_convertor import NameConvertor, DandifiedNameConvertor
 from pyp2rpm import settings
 
 
@@ -42,3 +42,13 @@ class TestUtils(object):
     ])
     def test_rpm_versioned_name(self, name, version, expected):
         assert NameConvertor.rpm_versioned_name(name, version) == expected
+
+class TestDandifiedNameConvertor(object):
+
+    def setup_method(self, method):
+        self.dnc = DandifiedNameConvertor('fedora')
+
+    def test_rpm_name(self):
+        for pkg in ["Babel", "MarkupSafe", "Jinja2", "Sphinx", "Cython", "IPy", "PyYaml", "pip",
+                "virtualenv"]:
+            print(self.dnc.rpm_name(pkg, '3'))
